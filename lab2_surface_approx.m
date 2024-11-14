@@ -3,8 +3,10 @@ clc
 close all
 
 %Turimi duomenys
-[x1, x2] = meshgrid(0:0.05:1, 0:0.05:1);%create twoD grid to solve surface approx
+[x1, x2] = meshgrid(0.1:1/22:1);%create twoD grid to solve surface approx
+[x1_test, x2_test] = meshgrid(0.1:1/200:1);
 y = (1 + 0.6 * sin(2 * pi * x1 / 0.7)) + 0.3 * sin(2 * pi * x2);  % modifikuota funkcija, turinti du kintamuosius
+y_test = (1 + 0.6 * sin(2 * pi * x1_test / 0.7)) + 0.3 * sin(2 * pi * x2_test);  % modifikuota funkcija, turinti du kintamuosius
 
 
 %Svoriai
@@ -45,9 +47,9 @@ eta=0.1;
 
 % Initialize output matrix Y to match the dimensions of x1 and x2
 Y = zeros(size(x1));%we need matrix same size as x1 and x2 since we work with 2D
-
+Y_test = zeros(size(x1_test));
 % Number of epochs
-ciklu_sk = 99998;
+ciklu_sk = 10000;
 
 % Training loop
 for j = 1:ciklu_sk
@@ -126,13 +128,43 @@ for j = 1:ciklu_sk
     end
 end
 
+for i = 1:size(x1_test, 1)%iterate through all x1 values
+        for k = 1:size(x1_test, 2)%iterate through all x2 values
+            % Forward pass for each element in x1, x2
+            v1_1 = w11_1 * x1_test(i, k) + w12_1 * x2_test(i, k) + b1_1;
+            v2_1 = w21_1 * x1_test(i, k) + w22_1 * x2_test(i, k) + b2_1;
+            v3_1 = w31_1 * x1_test(i, k) + w32_1 * x2_test(i, k) + b3_1;
+            v4_1 = w41_1 * x1_test(i, k) + w42_1 * x2_test(i, k) + b4_1;
+            v5_1 = w51_1 * x1_test(i, k) + w52_1 * x2_test(i, k) + b5_1;
+            v6_1 = w61_1 * x1_test(i, k) + w62_1 * x2_test(i, k) + b6_1;
+
+            % Activation for hidden layer
+            y1_1 = tanh(v1_1);
+            y2_1 = tanh(v2_1);
+            y3_1 = tanh(v3_1);
+            y4_1 = tanh(v4_1);
+            y5_1 = tanh(v5_1);
+            y6_1 = tanh(v6_1);
+
+            % Output neuron
+            v1_2 = y1_1 * w11_2 + y2_1 * w12_2 + y3_1 * w13_2 + ...
+                   y4_1 * w14_2 + y5_1 * w15_2 + y6_1 * w16_2 + b1_2;
+
+            % Output layer activation (linear)
+            y1_2 = v1_2;
+
+            % Store the output in the matrix Y
+            Y_test(i, k) = y1_2;
+        end
+ end
+
 % Plot the approximated surface with a specific color (e.g., red)
 figure;
-surf(x1, x2, Y, 'FaceColor', 'red', 'EdgeColor', 'green');  % Approximated surface
+surf(x1_test, x2_test, Y_test, 'FaceColor', 'red', 'EdgeColor', 'none');  % Approximated surface
 hold on;
 
 % Plot the target surface with a different color (e.g., blue)
-surf(x1, x2, y, 'FaceColor', 'blue', 'EdgeColor', 'green');  % Target surface
+surf(x1_test, x2_test, y_test, 'FaceColor', 'blue', 'EdgeColor', 'none');  % Target surface
 
 % Add a legend and labels
 legend('Predicted Surface', 'Target Surface');
